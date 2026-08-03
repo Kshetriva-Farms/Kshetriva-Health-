@@ -1,0 +1,17 @@
+{
+  "name": "Kshetriva Health+ | Farm Basket Wellness & AI Nutrition",
+  "short_name": "Kshetriva Health+",
+  "description": "Exclusive farm-to-table health platform for Kshetriva Farms vegetable basket subscribers.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B1612",
+  "theme_color": "#1B4D3E",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

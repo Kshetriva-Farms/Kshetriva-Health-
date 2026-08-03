@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.admin == true || 
+        request.auth.token.role == 'admin' || 
+        request.auth.token.email.matches('.*@kshetriva\\.com$')
+      );
+    }
+
+    // User Profiles Rules
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Vitals & Tracking Collection
+    match /users/{userId}/vitals/{vitalId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // Meals & Calorie Log Collection
+    match /users/{userId}/meals/{mealId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // Water Log Collection
+    match /users/{userId}/water/{waterId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // Weight Log Collection
+    match /users/{userId}/weight/{weightId} {
+      allow read, write: if isOwner(userId) || isAdmin();
+    }
+
+    // Subscriptions Collection
+    match /subscriptions/{subscriptionId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Public Recipe Catalog (Read-only for public, Write for Admin)
+    match /recipes/{recipeId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Produce Harvest Catalog
+    match /vegetables/{veggieId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Orders Collection
+    match /orders/{orderId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn();
+      allow update, delete: if isAdmin();
+    }
+
+    // Admin Broadcast Notifications
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+  }
+}
