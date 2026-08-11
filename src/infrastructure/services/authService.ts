@@ -6,6 +6,8 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   updateProfile,
 } from 'firebase/auth';
@@ -35,6 +37,18 @@ export function parseFirebaseAuthError(error: any): string {
       return 'Too many unsuccessful attempts. Please try again later.';
     case 'auth/popup-closed-by-user':
       return 'Google sign-in was cancelled before completion.';
+    case 'auth/popup-blocked':
+      return 'Your browser blocked the Google sign-in popup. Please allow popups for this site and try again.';
+    case 'auth/cancelled-popup-request':
+      return 'Another sign-in attempt is already in progress.';
+    case 'auth/unauthorized-domain':
+      return 'This domain is not yet authorized for sign-in. Add it under Firebase Console → Authentication → Settings → Authorized domains.';
+    case 'auth/operation-not-allowed':
+      return 'Google sign-in is not enabled for this project yet. Enable it under Firebase Console → Authentication → Sign-in method.';
+    case 'auth/network-request-failed':
+      return 'Network error while contacting the authentication server. Please check your connection and try again.';
+    case 'auth/internal-error':
+      return 'Authentication service returned an internal error. Please try again shortly.';
     default:
       return error.message || 'Authentication failed. Please try again.';
   }
@@ -62,12 +76,44 @@ class AuthService {
     if (!this.auth) {
       throw new Error('Authentication service is not configured. Please contact support.');
     }
+    const provider = new GoogleAuthProvider();
     try {
-      const provider = new GoogleAuthProvider();
       const userCredential = await signInWithPopup(this.auth, provider);
       return await this.fetchOrInitUserProfile(userCredential.user);
-    } catch (error) {
+    } catch (error: any) {
+      const code = error?.code || '';
+      // Popups are commonly blocked by browser settings, mobile browsers, or
+      // in-app webviews (e.g. Instagram/Facebook browser). Fall back to a
+      // full-page redirect flow, which works in those environments.
+      if (
+        code === 'auth/popup-blocked' ||
+        code === 'auth/operation-not-supported-in-this-environment' ||
+        code === 'auth/cancelled-popup-request'
+      ) {
+        await signInWithRedirect(this.auth, provider);
+        // The browser navigates away here; this promise will not resolve.
+        // The redirect result is picked up by handleRedirectResult() on return.
+        return new Promise<User>(() => {});
+      }
       throw new Error(parseFirebaseAuthError(error));
+    }
+  }
+
+  /**
+   * Completes a signInWithRedirect flow. Call once on app init (before/alongside
+   * onAuthChanged) so redirect-based Google sign-ins finish and surface their errors.
+   */
+  async handleRedirectResult(): Promise<User | null> {
+    if (!this.auth) return null;
+    try {
+      const result = await getRedirectResult(this.auth);
+      if (result?.user) {
+        return await this.fetchOrInitUserProfile(result.user);
+      }
+      return null;
+    } catch (error) {
+      console.error('Google redirect sign-in failed:', parseFirebaseAuthError(error));
+      return null;
     }
   }
 

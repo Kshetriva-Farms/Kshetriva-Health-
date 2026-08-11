@@ -20,6 +20,10 @@ export class AuthRepository implements IAuthRepository {
     return await authService.loginWithGoogle();
   }
 
+  async handleRedirectResult(): Promise<User | null> {
+    return await authService.handleRedirectResult();
+  }
+
   async register(credentials: AuthCredentials & { name: string }): Promise<User> {
     return await authService.register(credentials);
   }

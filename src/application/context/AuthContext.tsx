@@ -22,6 +22,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    // Complete any pending Google redirect sign-in (fallback path used when a
+    // popup was blocked/unsupported) before subscribing to normal auth state.
+    authRepository.handleRedirectResult().catch(() => {});
+
     const unsubscribe = authRepository.subscribeToAuthChanges((profile: UserProfile | null) => {
       setUser(profile);
       setLoading(false);
