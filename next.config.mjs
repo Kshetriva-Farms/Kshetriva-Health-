@@ -31,6 +31,14 @@ const nextConfig = {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin',
           },
+          {
+            // Without this, browsers default to a stricter COOP that blocks
+            // window.postMessage between the main window and Firebase's Google
+            // sign-in popup — Firebase then reports the popup as "closed by
+            // user" the instant it opens, even though nobody closed it.
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin-allow-popups',
+          },
         ],
       },
     ];
