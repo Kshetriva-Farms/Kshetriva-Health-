@@ -54,7 +54,7 @@ export default function MealPlanPage() {
   }, []);
 
   return (
-    <ProtectedRoute fallbackMessage="Subscribers receive AI-powered Indian meal plan generation with Gemini 2.5 Engine.">
+    <ProtectedRoute requireSubscription fallbackMessage="Subscribers receive AI-powered Indian meal plan generation with Gemini 2.5 Engine.">
       <div className="flex min-h-screen bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-white">
         {/* Sidebar Navigation (Desktop) */}
         <SidebarNav />

@@ -10,6 +10,14 @@ service firebase.storage {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.admin == true ||
+        request.auth.token.role == 'admin' ||
+        request.auth.token.email.matches('.*@kshetriva\\.com$')
+      );
+    }
+
     // User Avatar Photos
     match /users/{userId}/avatar/{fileName} {
       allow read: if true;
@@ -19,13 +27,13 @@ service firebase.storage {
     // Recipe Images (Public Read, Admin Write)
     match /recipes/{fileName} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow write: if isAdmin();
     }
 
-    // Harvest Images
+    // Harvest Images (Public Read, Admin Write)
     match /harvest/{fileName} {
       allow read: if true;
-      allow write: if isSignedIn();
+      allow write: if isAdmin();
     }
   }
 }

@@ -70,7 +70,7 @@ export default function AnalyticsPage() {
   if (!healthScore) return null;
 
   return (
-    <ProtectedRoute fallbackMessage="Subscribers get detailed health analytics, calorie trends, and weight progress charts.">
+    <ProtectedRoute requireSubscription fallbackMessage="Subscribers get detailed health analytics, calorie trends, and weight progress charts.">
       <div className="flex min-h-screen bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-white">
         {/* Navigation Sidebar */}
         <SidebarNav />

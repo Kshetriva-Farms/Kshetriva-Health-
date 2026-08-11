@@ -13,13 +13,21 @@ import { APP_ROUTES } from '@/lib/constants/routes';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   fallbackMessage?: string;
+  /** Require an active paid subscription, not just a signed-in account. */
+  requireSubscription?: boolean;
+  /** Require an admin account (email on the @kshetriva.com domain, matching firestore.rules). */
+  requireAdmin?: boolean;
 }
+
+const ADMIN_EMAIL_PATTERN = /@kshetriva\.com$/i;
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   fallbackMessage = 'Exclusive for Kshetriva Farms Vegetable Basket Subscribers.',
+  requireSubscription = false,
+  requireAdmin = false,
 }) => {
-  const { isAuthenticated, loading, loginWithGoogle } = useAuth();
+  const { isAuthenticated, loading, loginWithGoogle, user } = useAuth();
 
   if (loading) {
     return (
@@ -67,6 +75,48 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
             Quick Sign In with Google
           </Button>
         </div>
+      </Card>
+    );
+  }
+
+  if (requireAdmin && !ADMIN_EMAIL_PATTERN.test(user?.email || '')) {
+    return (
+      <Card className="max-w-xl mx-auto my-12 text-center p-8 space-y-4">
+        <div className="w-14 h-14 mx-auto rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500 shadow-lg">
+          <Lock className="w-7 h-7" />
+        </div>
+        <h2 className="text-2xl font-extrabold text-stone-900 dark:text-stone-100">Admins Only</h2>
+        <p className="text-sm text-stone-600 dark:text-stone-400">
+          This area is restricted to Kshetriva Farms team accounts.
+        </p>
+        <Link href={APP_ROUTES.DASHBOARD || '/dashboard'}>
+          <Button variant="primary">Back to Dashboard</Button>
+        </Link>
+      </Card>
+    );
+  }
+
+  if (requireSubscription && !(user?.subscriptionActive || user?.isSubscriptionActive)) {
+    return (
+      <Card className="max-w-xl mx-auto my-12 text-center p-8 space-y-6">
+        <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shadow-lg">
+          <Sparkles className="w-7 h-7" />
+        </div>
+        <div className="space-y-2">
+          <Badge variant="amber">
+            <ShieldCheck className="w-3.5 h-3.5 mr-1 inline" />
+            Subscriber-Only Feature
+          </Badge>
+          <h2 className="text-2xl font-extrabold text-stone-900 dark:text-stone-100">
+            Upgrade to Unlock This
+          </h2>
+          <p className="text-sm text-stone-600 dark:text-stone-400">{fallbackMessage}</p>
+        </div>
+        <Link href={APP_ROUTES.SUBSCRIPTION || '/subscription'}>
+          <Button variant="primary" className="w-full sm:w-auto">
+            View Subscription Plans <ArrowRight className="w-4 h-4 ml-1.5" />
+          </Button>
+        </Link>
       </Card>
     );
   }

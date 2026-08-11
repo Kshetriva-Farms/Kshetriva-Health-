@@ -1,8 +1,11 @@
 /**
  * Centralized Environment Configuration & Validation Module
  */
+// NOTE: This module is imported by src/infrastructure/config/firebase.ts, which is
+// used client-side — so nothing server-secret should live here. The Gemini API key
+// is read directly via process.env.GEMINI_API_KEY inside src/app/api/gemini/*
+// route handlers only, which run exclusively on the server.
 export const env = {
-  GEMINI_API_KEY: process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || '',
   FIREBASE: {
     API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'demo-kshetriva-api-key',
     AUTH_DOMAIN: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || 'kshetriva-health-plus.firebaseapp.com',

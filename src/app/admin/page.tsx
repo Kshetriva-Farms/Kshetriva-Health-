@@ -192,7 +192,7 @@ export default function AdminPanelPage() {
   if (!metrics) return null;
 
   return (
-    <ProtectedRoute fallbackMessage="Access Restricted. Admin Panel is reserved for system administrators.">
+    <ProtectedRoute requireAdmin fallbackMessage="Access Restricted. Admin Panel is reserved for system administrators.">
       <div className="flex min-h-screen bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-white">
         {/* Desktop Sidebar Navigation */}
         <SidebarNav />

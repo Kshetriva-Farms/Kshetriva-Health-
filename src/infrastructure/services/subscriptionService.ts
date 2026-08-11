@@ -77,6 +77,26 @@ export const VALID_COUPONS: CouponCode[] = [
 const STORAGE_STATE_KEY = 'kshetriva_subscription_state';
 const STORAGE_INVOICES_KEY = 'kshetriva_subscription_invoices';
 
+/**
+ * ⚠️ PROTOTYPE ONLY — NOT SAFE FOR REAL PAYMENTS. ⚠️
+ *
+ * This service stores subscription/invoice state in the browser's localStorage
+ * and marks every "purchase" as instantly PAID with no real payment ever occurring.
+ * It exists to let the UI be built and demoed before Razorpay is wired up.
+ *
+ * It is intentionally NOT connected to the `subscriptionActive` / `subscriptionTier`
+ * fields on the user's Firestore profile (the ones that actually gate premium
+ * features in ProtectedRoute) — firestore.rules now blocks users from writing
+ * those fields on their own document for exactly this reason: a user could edit
+ * localStorage or call this service directly and "pay" for nothing.
+ *
+ * Before launch, replace this with:
+ *   1. A Razorpay Checkout flow that creates an order via a server route.
+ *   2. A server route (or Cloud Function) that verifies the Razorpay payment
+ *      signature/webhook, and only THEN — using the Firebase Admin SDK, which
+ *      bypasses firestore.rules — sets subscriptionActive/subscriptionTier on
+ *      the user's document and writes the real invoice/subscription records.
+ */
 class SubscriptionService {
   private getInitialState(): UserSubscriptionState {
     const today = new Date();

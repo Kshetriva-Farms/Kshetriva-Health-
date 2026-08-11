@@ -50,7 +50,7 @@ export default function FarmBasketPage() {
   };
 
   return (
-    <ProtectedRoute fallbackMessage="Subscribers receive weekly organic farm harvest baskets, live delivery tracking & farm-to-table nutrition.">
+    <ProtectedRoute requireSubscription fallbackMessage="Subscribers receive weekly organic farm harvest baskets, live delivery tracking & farm-to-table nutrition.">
       <div className="flex min-h-screen bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-white">
         {/* Sidebar Navigation (Desktop) */}
         <SidebarNav />

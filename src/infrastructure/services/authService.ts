@@ -43,59 +43,40 @@ export function parseFirebaseAuthError(error: any): string {
 class AuthService {
   private auth = app ? getAuth(app) : null;
 
-  private getMockUser(email?: string, name?: string): User {
-    return {
-      uid: 'mock-user-1',
-      id: 'mock-user-1',
-      email: email || 'demo@kshetriva.com',
-      displayName: name || 'Demo Subscriber',
-      name: name || 'Demo Subscriber',
-      subscriptionTier: 'VIP_HEALTH_PLUS',
-      subscriptionActive: true,
-      isSubscriptionActive: true,
-      age: 28,
-      gender: 'Male',
-      heightCm: 175,
-      weightKg: 68.5,
-      targetWeightKg: 65,
-      activityLevel: 'Moderately Active',
-      primaryGoal: 'Maintain Weight',
-      dailyCaloriesGoal: 2000,
-      waterGoalMl: 3000,
-      createdAt: new Date().toISOString(),
-    };
-  }
-
   async login({ email, password }: AuthCredentials): Promise<User> {
-    if (!this.auth || !email || !password) {
-      return this.getMockUser(email);
+    if (!this.auth) {
+      throw new Error('Authentication service is not configured. Please contact support.');
+    }
+    if (!email || !password) {
+      throw new Error('Please enter both email and password.');
     }
     try {
       const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
       return await this.fetchOrInitUserProfile(userCredential.user);
     } catch (error) {
-      console.warn('Firebase Auth failed, falling back to Demo Mode:', error);
-      return this.getMockUser(email);
+      throw new Error(parseFirebaseAuthError(error));
     }
   }
 
   async loginWithGoogle(): Promise<User> {
     if (!this.auth) {
-      return this.getMockUser('google@kshetriva.com', 'Google Member');
+      throw new Error('Authentication service is not configured. Please contact support.');
     }
     try {
       const provider = new GoogleAuthProvider();
       const userCredential = await signInWithPopup(this.auth, provider);
       return await this.fetchOrInitUserProfile(userCredential.user);
     } catch (error) {
-      console.warn('Google Sign-In failed, falling back to Demo Mode:', error);
-      return this.getMockUser('google@kshetriva.com', 'Google Member');
+      throw new Error(parseFirebaseAuthError(error));
     }
   }
 
   async register({ email, password, name }: AuthCredentials & { name: string }): Promise<User> {
-    if (!this.auth || !email || !password) {
-      return this.getMockUser(email, name);
+    if (!this.auth) {
+      throw new Error('Authentication service is not configured. Please contact support.');
+    }
+    if (!email || !password) {
+      throw new Error('Please enter both email and password.');
     }
     try {
       const userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
@@ -106,8 +87,7 @@ class AuthService {
       await firestoreService.setDocument('users', newProfile.uid, newProfile);
       return newProfile;
     } catch (error) {
-      console.warn('Registration failed, falling back to Demo Mode:', error);
-      return this.getMockUser(email, name);
+      throw new Error(parseFirebaseAuthError(error));
     }
   }
 
@@ -116,8 +96,7 @@ class AuthService {
       throw new Error('Please enter a valid email address.');
     }
     if (!this.auth) {
-      console.log('Mock password reset email sent to:', email);
-      return;
+      throw new Error('Authentication service is not configured. Please contact support.');
     }
     try {
       await sendPasswordResetEmail(this.auth, email);
@@ -145,7 +124,8 @@ class AuthService {
 
   onAuthChanged(callback: (user: User | null) => void): () => void {
     if (!this.auth) {
-      callback(this.getMockUser());
+      console.error('Firebase Auth is not configured. Check your environment variables.');
+      callback(null);
       return () => {};
     }
     return onAuthStateChanged(this.auth, async (firebaseUser: any) => {
@@ -154,10 +134,11 @@ class AuthService {
           const userProfile = await this.fetchOrInitUserProfile(firebaseUser);
           callback(userProfile);
         } catch (e) {
-          callback(this.getMockUser());
+          console.error('Failed to load user profile:', e);
+          callback(null);
         }
       } else {
-        callback(this.getMockUser());
+        callback(null);
       }
     });
   }
@@ -184,9 +165,9 @@ class AuthService {
       displayName: displayName || firebaseUser.displayName || 'Health Plus User',
       name: displayName || firebaseUser.displayName || 'Health Plus User',
       photoURL: firebaseUser.photoURL || undefined,
-      subscriptionTier: 'pro',
-      subscriptionActive: true,
-      isSubscriptionActive: true,
+      subscriptionTier: 'NONE',
+      subscriptionActive: false,
+      isSubscriptionActive: false,
       age: 28,
       gender: 'Male',
       heightCm: 175,

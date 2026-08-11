@@ -237,7 +237,7 @@ I'm Dr. Health+, powered by **Gemini 2.5 AI Engine**. How can I help you reach y
   ];
 
   return (
-    <ProtectedRoute fallbackMessage="Subscribers get unlimited 24/7 AI Health & Nutrition Coaching powered by Gemini.">
+    <ProtectedRoute requireSubscription fallbackMessage="Subscribers get unlimited 24/7 AI Health & Nutrition Coaching powered by Gemini.">
       <div className="flex min-h-screen bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-white">
         {/* Sidebar Nav (Desktop) */}
         <SidebarNav />
